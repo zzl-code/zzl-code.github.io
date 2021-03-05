@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="环境准备本人使用的是JDK8、maven3.6.3 maven的setting.xml配置文件需要添加如下配置： &lt;mirrors&gt;         &lt;mirror&gt;             &lt;id&gt;repo.jenkins-ci.org&lt;&#x2F;id&gt;             &lt;url&gt;https:&#x2F;&#x2F;repo.jenkins-ci.org&#x2F;">
+<meta property="og:type" content="website">
+<meta property="og:title" content="jenkins 插件开发教程">
+<meta property="og:url" content="http://example.com/devops/jenkinsPlugin.html">
+<meta property="og:site_name" content="青葱的个人博客">
+<meta property="og:description" content="环境准备本人使用的是JDK8、maven3.6.3 maven的setting.xml配置文件需要添加如下配置： &lt;mirrors&gt;         &lt;mirror&gt;             &lt;id&gt;repo.jenkins-ci.org&lt;&#x2F;id&gt;             &lt;url&gt;https:&#x2F;&#x2F;repo.jenkins-ci.org&#x2F;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/devops/jenkins_plugin_project.jpg">
+<meta property="og:image" content="http://example.com/devops/jenkins_plugin_notice.jpg">
+<meta property="og:image" content="http://example.com/devops/jenkins_plugin_upload.jpg">
+<meta property="article:published_time" content="2021-03-05T03:30:23.000Z">
+<meta property="article:modified_time" content="2021-03-05T08:05:09.526Z">
+<meta property="article:author" content="青葱">
+<meta property="article:tag" content="devOps">
+<meta property="article:tag" content="jenkins">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/devops/jenkins_plugin_project.jpg">
+
+<link rel="canonical" href="http://example.com/devops/jenkinsPlugin">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : false,
+    lang   : 'en'
+  };
+</script>
+
+  <title>jenkins 插件开发教程 | 青葱的个人博客
+</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">青葱的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-主页">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>主页</a>
+
+  </li>
+        <li class="menu-item menu-item-云原生">
+
+    <a href="/cloudNative/" rel="section"><i class="fa fa-cloud fa-fw"></i>云原生</a>
+
+  </li>
+        <li class="menu-item menu-item-devops">
+
+    <a href="/devops/" rel="section"><i class="fa fa-anchor fa-fw"></i>DevOps</a>
+
+  </li>
+        <li class="menu-item menu-item-标签">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+  
+  
+
+          <div class="content page posts-expand">
+            
+
+    
+    
+    
+    <div class="post-block" lang="en">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">jenkins 插件开发教程
+</h1>
+
+<div class="post-meta">
+  
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+          <h1 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h1><p>本人使用的是JDK8、maven3.6.3</p>
+<p>maven的setting.xml配置文件需要添加如下配置：</p>
+<pre><code>&lt;mirrors&gt;
+        &lt;mirror&gt;
+            &lt;id&gt;repo.jenkins-ci.org&lt;/id&gt;
+            &lt;url&gt;https://repo.jenkins-ci.org/public/&lt;/url&gt;
+            &lt;mirrorOf&gt;m.g.o-public&lt;/mirrorOf&gt;
+        &lt;/mirror&gt;
+&lt;/mirrors&gt;
+    
+&lt;profile&gt;
+    &lt;id&gt;jenkins&lt;/id&gt;
+    &lt;activation&gt;
+        &lt;activeByDefault&gt;true&lt;/activeByDefault&gt;
+    &lt;/activation&gt;
+    &lt;repositories&gt;
+        &lt;repository&gt;
+            &lt;id&gt;repo.jenkins-ci.org&lt;/id&gt;
+            &lt;url&gt;https://repo.jenkins-ci.org/public/&lt;/url&gt;
+        &lt;/repository&gt;
+    &lt;/repositories&gt;
+    &lt;pluginRepositories&gt;
+        &lt;pluginRepository&gt;
+            &lt;id&gt;repo.jenkins-ci.org&lt;/id&gt;
+            &lt;url&gt;https://repo.jenkins-ci.org/public/&lt;/url&gt;
+        &lt;/pluginRepository&gt;
+    &lt;/pluginRepositories&gt;
+&lt;/profile&gt;  
+</code></pre>
+<p>该配置大致意思就是引入jenkins的 镜像仓库地址，方便代码生成时候maven去对应仓库地址下载需要的jar包</p>
+<h1 id="插件开发"><a href="#插件开发" class="headerlink" title="插件开发"></a>插件开发</h1><p>jenkins插件开发非常简单，框架骨架都是通过maven的模板生产代码，到时候根据需要到对应地方填充我们自己的逻辑即可。</p>
+<h3 id="maven生成项目"><a href="#maven生成项目" class="headerlink" title="maven生成项目"></a>maven生成项目</h3><p>执行如下命令：</p>
+<pre><code>mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate -Dfilter=io.jenkins.archetypes: -DarchetypeCatalog=file:///你的archetype-catalog.xml本地路径（archetype-catalog.xml可以百度下载）
+</code></pre>
+<p>该命令通过制定固定的maven插件maven-archetype-plugin版本为2.4，并且手动指定DarchetypeCatalog路径。因为笔者睬过一个坑，不指定maven-archetype-plugin版本的话默认使用的是3以上版本，然后命令执行会报错，手动改为2.4版本并指定DarchetypeCatalog本地路径才得以运行成功。日志如下：</p>
+<pre><code>[INFO] Scanning for projects...
+    [INFO]
+    [INFO] ------------------&lt; org.apache.maven:standalone-pom &gt;-------------------
+    [INFO] Building Maven Stub Project (No POM) 1
+    [INFO] --------------------------------[ pom ]---------------------------------
+    [INFO]
+    [INFO] &gt;&gt;&gt; maven-archetype-plugin:2.4:generate (default-cli) &gt; generate-sources @ standalone-pom &gt;&gt;&gt;
+    [INFO]
+    [INFO] &lt;&lt;&lt; maven-archetype-plugin:2.4:generate (default-cli) &lt; generate-sources @ standalone-pom &lt;&lt;&lt;
+    [INFO]
+    [INFO]
+    [INFO] --- maven-archetype-plugin:2.4:generate (default-cli) @ standalone-pom ---
+    [INFO] Generating project in Interactive mode
+    [INFO] No archetype defined. Using maven-archetype-quickstart (org.apache.maven.archetypes:maven-archetype-quickstart:1.0)
+    Choose archetype:
+    1: file:///Users/Documents/archetype-catalog.xml -&gt; io.jenkins.archetypes:empty-plugin (Skeleton of a Jenkins plugin with a POM and an empty source tree.)
+    2: file:///Users/Documents/archetype-catalog.xml -&gt; io.jenkins.archetypes:global-configuration-plugin (Skeleton of a Jenkins plugin with a POM and an example piece of global configuration.)
+    3: file:///Users/Documents/archetype-catalog.xml -&gt; io.jenkins.archetypes:hello-world-plugin (Skeleton of a Jenkins plugin with a POM and an example build step.)
+    Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): : **3**
+    Choose io.jenkins.archetypes:hello-world-plugin version:
+    1: 1.1
+    2: 1.2
+    Choose a number: 2:** 2**
+    Downloading from hello-world-plugin-repo: file:///Users/zhangzhenglong/Documents/io/jenkins/archetypes/hello-world-plugin/1.2/hello-world-plugin-1.2.jar
+    Downloading from nexus: http://nexus.dui88.com:8081/nexus/content/groups/public/io/jenkins/archetypes/hello-world-plugin/1.2/hello-world-plugin-1.2.jar
+    Downloaded from nexus: http://nexus.dui88.com:8081/nexus/content/groups/public/io/jenkins/archetypes/hello-world-plugin/1.2/hello-world-plugin-1.2.jar (13 kB at 1.3 kB/s)
+    Downloading from hello-world-plugin-repo: file:///Users/Documents/io/jenkins/archetypes/hello-world-plugin/1.2/hello-world-plugin-1.2.pom
+    Downloading from nexus: http://nexus.dui88.com:8081/nexus/content/groups/public/io/jenkins/archetypes/hello-world-plugin/1.2/hello-world-plugin-1.2.pom
+    Downloaded from nexus: http://nexus.dui88.com:8081/nexus/content/groups/public/io/jenkins/archetypes/hello-world-plugin/1.2/hello-world-plugin-1.2.pom (737 B at 135 B/s)
+    [INFO] Using property: groupId = unused
+    Define value for property &#39;artifactId&#39;: : **buildInformer**
+    Define value for property &#39;version&#39;:  1.0-SNAPSHOT: : **1.0.0**
+    [INFO] Using property: package = org.jenkinsci.plugins.sample
+    Confirm properties configuration:
+    groupId: unused
+    artifactId: buildInformer
+    version: 1.0.0
+    package: org.jenkinsci.plugins.sample
+     Y: : **y**
+    [INFO] ----------------------------------------------------------------------------
+    [INFO] Using following parameters for creating project from Archetype: hello-world-plugin:1.2
+    [INFO] ----------------------------------------------------------------------------
+    [INFO] Parameter: groupId, Value: unused
+    [INFO] Parameter: artifactId, Value: buildInformer
+    [INFO] Parameter: version, Value: 1.0.0
+    [INFO] Parameter: package, Value: org.jenkinsci.plugins.sample
+    [INFO] Parameter: packageInPathFormat, Value: org/jenkinsci/plugins/sample
+    [INFO] Parameter: package, Value: org.jenkinsci.plugins.sample
+    [INFO] Parameter: groupId, Value: unused
+    [INFO] Parameter: artifactId, Value: buildInformer
+    [INFO] Parameter: version, Value: 1.0.0
+    [INFO] project created from Archetype in dir: /Users/Documents/code/jenkins/build-informer/buildInformer
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  01:24 min
+    [INFO] Finished at: 2020-10-10T13:50:04+08:00
+</code></pre>
+<p>    jenkins提供给了我们五种模板 ：</p>
+<ul>
+<li>空插件(Jenkins插件的框架)</li>
+<li>全局配置插件(具有POM和全局配置示例的Jenkins插件的框架)</li>
+<li>全局共享库</li>
+<li>hello-world-plugin(带有POM的Jenkins插件的骨架和一个示例构建步骤)</li>
+<li>脚本管道<br>我们选择了第二种。然后就是输入ArtifactId 和创建Maven项目一样GroupId呢这里就不能设置了，再然后呢就是设置 version 指定插锁创建插件的版本，这里还是使用默认的，直接 Enter 就行，最后确认 信息输入 y 回车，最后就生成了一个基本的jenkins插件项目了！</li>
+</ul>
+<h3 id="插件项目"><a href="#插件项目" class="headerlink" title="插件项目"></a>插件项目</h3><p>项目目录格式如下：<br><img src="/devops/jenkins_plugin_project.jpg"></p>
+<p>resources下的目录结构必须要和java下的目录结构一样。例如：src.main.java下有cn.com.xxx.jenkinsBuildInformer 包中有 BuildInformer.java 文件，src/main/resources 下有cn.com.xxx.jenkinsBuildInformer.BuildInformer 目录与之对应，这是Jenkins的规则，如果存在BuildInformer.java就必须存在BuildInformer目录与之对应，目录路径必须同BuildInformer.java包名一致。</p>
+<p>   然后我们再来看BuildInformer目录，他下面有三类文件，config.jelly、jelly、*.html ，config.jelly就是整个的表单界面。在里面配置你需要的表单内容即可。</p>
+<p>  我这边写的是一个http的后置通知，可以在打包完成后把打包结果实时通知给调用打包的服务器。避免调用方使用轮训的方法拉取结果。</p>
+<p><img src="/devops/jenkins_plugin_notice.jpg"></p>
+<p> BuildInformer代码如下：</p>
+<pre><code> /**
+ * @author 青葱
+ */
+public class BuildInformer extends Notifier &#123;
+
+    private final String appName;
+
+    private final String env;
+
+    private final String serverUrl;
+
+    private PrintStream logger;
+
+    /**
+     * Fields in config.jelly must names in &quot;DataBoundConstructor&quot;
+     */
+    @DataBoundConstructor
+    public BuildInformer(String appName, String env, String serverUrl) &#123;
+        this.appName = appName;
+        this.env = env;
+        this.serverUrl = serverUrl;
+    &#125;
+
+    @Override
+    public BuildStepMonitor getRequiredMonitorService() &#123;
+        return BuildStepMonitor.NONE;
+    &#125;
+
+    @Override
+    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws UnsupportedEncodingException &#123;
+
+        logger = listener.getLogger();
+
+        Jenkins.getInstance();
+        sendAsync(generateMessageURL(build.getResult()));
+        return true;
+    &#125;
+
+    /**
+     * 构建发送通知消息url
+     *
+     * @return
+     */
+    private String generateMessageURL(Result result) &#123;
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append(this.serverUrl)
+                .append(&quot;appName=&quot;).append(this.appName)
+                .append(&quot;&amp;env=&quot;).append(this.env)
+                .append(&quot;result=&quot;).append(result.toString());
+        return stringBuffer.toString();
+    &#125;
+
+    /**
+     * 发送消息
+     *
+     * @param url
+     */
+    protected void send(String url) &#123;
+        logger.println(&quot;Sendurl: &quot; + url);
+        HttpURLConnection connection = null;
+        InputStream is = null;
+        String resultData = &quot;&quot;;
+        try &#123;
+            URL targetUrl = new URL(url);
+            connection = (HttpURLConnection) targetUrl.openConnection();
+            connection.setConnectTimeout(10 * 1000);
+            connection.setReadTimeout(10 * 1000);
+            connection.connect();
+            is = connection.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader bufferReader = new BufferedReader(isr);
+            String inputLine = &quot;&quot;;
+            while ((inputLine = bufferReader.readLine()) != null) &#123;
+                resultData += inputLine + &quot;\n&quot;;
+            &#125;
+            logger.println(&quot;response: &quot; + resultData);
+        &#125; catch (Exception e) &#123;
+            logger.println(&quot;http error.&quot; + e);
+        &#125; finally &#123;
+            if (is != null) &#123;
+                try &#123;
+                    is.close();
+                &#125; catch (IOException e) &#123;
+                    e.printStackTrace();
+                &#125;
+            &#125;
+            if (connection != null) &#123;
+                connection.disconnect();
+            &#125;
+        &#125;
+        logger.println(&quot;Send url finish&quot;);
+    &#125;
+
+    protected void sendAsync(String url) &#123;
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setSocketTimeout(100000)
+                .setConnectTimeout(100000).build();
+        CloseableHttpAsyncClient httpclient = HttpAsyncClients.custom().
+                setDefaultRequestConfig(requestConfig)
+                .build();
+        try &#123;
+            httpclient.start();
+            final HttpGet request = new HttpGet(url);
+            httpclient.execute(request, new FutureCallback&lt;HttpResponse&gt;() &#123;
+
+                @Override
+                public void completed(final HttpResponse response) &#123;
+                    logger.println(request.getRequestLine() + &quot;-&gt;&quot; + response.getStatusLine());
+                &#125;
+
+                @Override
+                public void failed(final Exception ex) &#123;
+                    logger.println(request.getRequestLine() + &quot;-&gt;&quot; + ex);
+                &#125;
+
+                @Override
+                public void cancelled() &#123;
+                    logger.println(request.getRequestLine() + &quot; cancelled&quot;);
+                &#125;
+            &#125;);
+        &#125; catch (Exception e) &#123;
+            logger.println(&quot;http error.&quot; + e);
+        &#125; finally &#123;
+            try &#123;
+                httpclient.close();
+            &#125; catch (Exception e) &#123;
+            &#125;
+        &#125;
+        logger.println(&quot;send Done&quot;);
+    &#125;
+
+    @Override
+    public DescriptorImpl getDescriptor() &#123;
+        return (DescriptorImpl) super.getDescriptor();
+    &#125;
+
+    public String getAppName() &#123;
+        return appName;
+    &#125;
+
+    public String getEnv() &#123;
+        return env;
+    &#125;
+
+    public String getServerUrl() &#123;
+        return serverUrl;
+    &#125;
+
+    @Extension
+    public static final class DescriptorImpl extends
+            BuildStepDescriptor&lt;Publisher&gt; &#123;
+
+        public DescriptorImpl() &#123;
+            load();
+        &#125;
+
+        private boolean isNumeric(String str) &#123;
+            Pattern pattern = Pattern.compile(&quot;[0-9]*&quot;);
+            Matcher isNum = pattern.matcher(str);
+            if (!isNum.matches()) &#123;
+                return false;
+            &#125;
+            return true;
+        &#125;
+
+
+        @Override
+        public boolean isApplicable(Class&lt;? extends AbstractProject&gt; aClass) &#123;
+            return true;
+        &#125;
+
+        /**
+         * jenkins中显示名称
+         *
+         * @return
+         */
+        @Override
+        public String getDisplayName() &#123;
+            return &quot;构建通知&quot;;
+        &#125;
+
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException &#123;
+            save();
+            return super.configure(req, formData);
+        &#125;
+
+    &#125;
+&#125;  
+</code></pre>
+<h3 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h3><p>开发完成执行mvn hpi:run 会打开一个本地的带当前开发插件的jenkins服务器，地址为<a target="_blank" rel="noopener" href="http://localhost:8080/jenkins%EF%BC%8C%E5%8F%AF%E4%BB%A5%E5%9C%A8%E8%AF%A5%E5%9C%B0%E5%9D%80%E4%B8%8A%E7%9C%8B%E6%8F%92%E4%BB%B6%E6%95%88%E6%9E%9C%E3%80%82">http://localhost:8080/jenkins，可以在该地址上看插件效果。</a><br>如果需要断点调试，可以运行mvnDebug hpi:run，此命令会在8000端口建立监听，然后可以在IDE中配置对应的Run/Debug Configuration，配置完后运行Debug就会自动触发插件编译和运行流程。</p>
+<h3 id="上传插件"><a href="#上传插件" class="headerlink" title="上传插件"></a>上传插件</h3><p>jenkins如果需要运行该插件，可以登陆jenkins后台，插件管理-&gt;高级-&gt;上传插件  上传我们打包完成的.hpi包<br><img src="/devops/jenkins_plugin_upload.jpg"></p>
+
+      </div>
+      
+      
+      
+    </div>
+    
+
+    
+    
+    
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91"><span class="nav-number">2.</span> <span class="nav-text">插件开发</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven%E7%94%9F%E6%88%90%E9%A1%B9%E7%9B%AE"><span class="nav-number">2.0.1.</span> <span class="nav-text">maven生成项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E4%BB%B6%E9%A1%B9%E7%9B%AE"><span class="nav-number">2.0.2.</span> <span class="nav-text">插件项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E8%AF%95"><span class="nav-number">2.0.3.</span> <span class="nav-text">调试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8A%E4%BC%A0%E6%8F%92%E4%BB%B6"><span class="nav-number">2.0.4.</span> <span class="nav-text">上传插件</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">青葱</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">青葱</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
