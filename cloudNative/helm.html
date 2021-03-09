@@ -25,20 +25,20 @@
     var CONFIG = {"hostname":"zzl-code.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Jenkins jenkins 插件开发教程  Jib jib 更快的构建java容器镜像">
-<meta property="og:type" content="article">
-<meta property="og:title" content="devops">
-<meta property="og:url" content="https://zzl-code.github.io/devops/index.html">
+  <meta name="description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm t">
+<meta property="og:type" content="website">
+<meta property="og:title" content="helm charts 开发实践">
+<meta property="og:url" content="https://zzl-code.github.io/cloudNative/helm.html">
 <meta property="og:site_name" content="青葱的个人博客">
-<meta property="og:description" content="Jenkins jenkins 插件开发教程  Jib jib 更快的构建java容器镜像">
+<meta property="og:description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm t">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-03-03T09:21:27.000Z">
-<meta property="article:modified_time" content="2021-03-05T07:52:37.160Z">
+<meta property="article:published_time" content="2021-03-08T07:33:42.000Z">
+<meta property="article:modified_time" content="2021-03-09T03:23:58.182Z">
 <meta property="article:author" content="青葱">
-<meta property="article:tag" content="devops">
+<meta property="article:tag" content="helm">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://zzl-code.github.io/devops/">
+<link rel="canonical" href="https://zzl-code.github.io/cloudNative/helm">
 
 
 <script id="page-configurations">
@@ -46,12 +46,13 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : true,
+    isPost : false,
     lang   : 'en'
   };
 </script>
 
-  <title>devops | 青葱的个人博客</title>
+  <title>helm charts 开发实践 | 青葱的个人博客
+</title>
   
 
 
@@ -163,94 +164,88 @@
       <div class="main-inner">
         <div class="content-wrap">
           
+  
+  
 
-          <div class="content post posts-expand">
+          <div class="content page posts-expand">
             
 
     
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://zzl-code.github.io/devops/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="青葱">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="青葱的个人博客">
-    </span>
+    
+    
+    <div class="post-block" lang="en">
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          devops
-        </h1>
 
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
+<h1 class="post-title" itemprop="name headline">helm charts 开发实践
+</h1>
 
-              <time title="Created: 2021-03-03 17:21:27" itemprop="dateCreated datePublished" datetime="2021-03-03T17:21:27+08:00">2021-03-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-03-05 15:52:37" itemprop="dateModified" datetime="2021-03-05T15:52:37+08:00">2021-03-05</time>
-              </span>
+<div class="post-meta">
+  
 
-          
+</div>
 
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
+</header>
 
       
-        <h1 id="Jenkins"><a href="#Jenkins" class="headerlink" title="Jenkins"></a>Jenkins</h1><ul>
-<li><a href="/devops/jenkinsPlugin" title="jenkins插件开发教程">jenkins 插件开发教程</a></li>
+      
+      
+      <div class="post-body">
+          <p> Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去</p>
+<h1 id="1-首先创建模板"><a href="#1-首先创建模板" class="headerlink" title="1.首先创建模板"></a>1.首先创建模板</h1><pre><code>helm create jenkins
+helm tree jenkins
+jenkins
+├── Chart.yaml
+├── charts
+├── templates
+│   ├── NOTES.txt
+│   ├── _helpers.tpl
+│   ├── deployment.yaml
+│   ├── hpa.yaml
+│   ├── ingress.yaml
+│   ├── service.yaml
+│   ├── serviceaccount.yaml
+│   └── tests
+│       └── test-connection.yaml
+└── values.yaml
+
+3 directories, 10 files
+</code></pre>
+<p>其实主要关注两个目录</p>
+<ul>
+<li>templates：这个目录里面存放要部署的模板，里面主要是k8s对应的要部署服务相关的yaml。开发者可以将动态部分抽出为可变参数，通过values.yaml来动态传入。比如我们不同环境的jenkins规模不一样，所需要的cpu和内存就不同，就可以抽出来</li>
+<li>values.yaml 则是配置模板需要的参数，许多参数我们可以提前内置进去</li>
 </ul>
-<h1 id="Jib"><a href="#Jib" class="headerlink" title="Jib"></a>Jib</h1><ul>
-<li><a href="/devops/jib" title="jib 更快的构建java容器镜像">jib 更快的构建java容器镜像</a></li>
-</ul>
-
+<p>额外在说一下_helpers.tpl ，这个是对chart里面变量的一个扩展。我们可以**** 来定义全局可访问变量，比如定义jenkins的名称：</p>
+<pre><code>&#123;&#123;- define "jenkins.fullname" -&#125;&#125;
+&#123;&#123;- if .Values.fullnameOverride &#125;&#125;
+&#123;&#123;- .Values.fullnameOverride | trunc 63 | trimSuffix "-" &#125;&#125;
+&#123;&#123;- else &#125;&#125;
+&#123;&#123;- $name := default .Chart.Name .Values.nameOverride &#125;&#125;
+&#123;&#123;- if contains $name .Release.Name &#125;&#125;
+&#123;&#123;- .Release.Name | trunc 63 | trimSuffix "-" &#125;&#125;
+&#123;&#123;- else &#125;&#125;
+&#123;&#123;- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" &#125;&#125;
+&#123;&#123;- end &#125;&#125;
+&#123;&#123;- end &#125;&#125;
+&#123;&#123;- end &#125;&#125;
+</code></pre>
+<p>我们就可以在chart和所有的子chart使用该变量。</p>
+<pre><code>    metadata:
+  name: &#123;&#123; include "jenkins.fullname" . &#125;&#125;
+  
+</code></pre>
+<p>具体模板预发见<a target="_blank" rel="noopener" href="https://helm.sh/zh/docs/chart_best_practices/templates/">helm官网</a>     </p>
+<h1 id="2配置模板参数"><a href="#2配置模板参数" class="headerlink" title="2配置模板参数"></a>2配置模板参数</h1>
+      </div>
+      
+      
+      
     </div>
+    
 
     
     
     
-
-      <footer class="post-footer">
-          <div class="post-tags">
-              <a href="/tags/devops/" rel="tag"># devops</a>
-          </div>
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item">
-    <a href="/cloudNative/" rel="prev" title="cloudNative">
-      <i class="fa fa-chevron-left"></i> cloudNative
-    </a></div>
-      <div class="post-nav-item"></div>
-    </div>
-      </footer>
-    
-  </article>
-  
-  
-  
-
 
 
           </div>
@@ -301,7 +296,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Jenkins"><span class="nav-number">1.</span> <span class="nav-text">Jenkins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Jib"><span class="nav-number">2.</span> <span class="nav-text">Jib</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%A6%96%E5%85%88%E5%88%9B%E5%BB%BA%E6%A8%A1%E6%9D%BF"><span class="nav-number">1.</span> <span class="nav-text">1.首先创建模板</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2%E9%85%8D%E7%BD%AE%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">2配置模板参数</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
