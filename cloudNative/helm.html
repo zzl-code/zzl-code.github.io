@@ -32,11 +32,15 @@
 <meta property="og:site_name" content="青葱的个人博客">
 <meta property="og:description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm t">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins_svc.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins_init.jpg">
 <meta property="article:published_time" content="2021-03-08T07:33:42.000Z">
-<meta property="article:modified_time" content="2021-03-09T03:23:58.182Z">
+<meta property="article:modified_time" content="2021-03-10T09:25:11.743Z">
 <meta property="article:author" content="青葱">
 <meta property="article:tag" content="helm">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins.jpg">
 
 <link rel="canonical" href="https://zzl-code.github.io/cloudNative/helm">
 
@@ -197,8 +201,8 @@ jenkins
 ├── Chart.yaml
 ├── charts
 ├── templates
-│   ├── NOTES.txt
-│   ├── _helpers.tpl
+│   ├── NOTES.txt  chart的&quot;帮助文本&quot;。这会在你的用户执行helm install时展示给他们
+│   ├── _helpers.tpl   放置可以通过chart复用的模板辅助对象
 │   ├── deployment.yaml
 │   ├── hpa.yaml
 │   ├── ingress.yaml
@@ -215,7 +219,7 @@ jenkins
 <li>templates：这个目录里面存放要部署的模板，里面主要是k8s对应的要部署服务相关的yaml。开发者可以将动态部分抽出为可变参数，通过values.yaml来动态传入。比如我们不同环境的jenkins规模不一样，所需要的cpu和内存就不同，就可以抽出来</li>
 <li>values.yaml 则是配置模板需要的参数，许多参数我们可以提前内置进去</li>
 </ul>
-<p>额外在说一下_helpers.tpl ，这个是对chart里面变量的一个扩展。我们可以**** 来定义全局可访问变量，比如定义jenkins的名称：</p>
+<p>额外在说一下_helpers.tpl ，这个是对chart里面变量的一个扩展。我们可以**** 来定义全局可访问变量，比如定义jenkins的fullname：</p>
 <pre><code>&#123;&#123;- define "jenkins.fullname" -&#125;&#125;
 &#123;&#123;- if .Values.fullnameOverride &#125;&#125;
 &#123;&#123;- .Values.fullnameOverride | trunc 63 | trimSuffix "-" &#125;&#125;
@@ -234,8 +238,166 @@ jenkins
   name: &#123;&#123; include "jenkins.fullname" . &#125;&#125;
   
 </code></pre>
-<p>具体模板预发见<a target="_blank" rel="noopener" href="https://helm.sh/zh/docs/chart_best_practices/templates/">helm官网</a>     </p>
-<h1 id="2配置模板参数"><a href="#2配置模板参数" class="headerlink" title="2配置模板参数"></a>2配置模板参数</h1>
+<p>具体模板规范见<a target="_blank" rel="noopener" href="https://helm.sh/zh/docs/chart_best_practices/templates/">helm官网</a>     </p>
+<h1 id="2-配置模板参数"><a href="#2-配置模板参数" class="headerlink" title="2.配置模板参数"></a>2.配置模板参数</h1><pre><code>Chart.yaml文件中为介绍chart的一些基本信息，我们这边就用默认生成的不做更改。 
+因为我们jenkins只是做简单的测试，所以serviceAccount、hpa、ingress不做配置就直接删掉了。
+接下来就是values.yaml、service.yaml、deployment.yaml的配置，其实就是按照k8s的deployment、service的yaml的配置把需要动态的参数用模板语言抽出来，放在values.yaml里面做配置。
+</code></pre>
+<h3 id="service-yaml"><a href="#service-yaml" class="headerlink" title="service.yaml"></a>service.yaml</h3><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: &#123;&#123; include "jenkins.fullname" . &#125;&#125;
+  annotations:
+        #用rang函数来输出key  value
+        &#123;&#123;- range $key, $val := .Values.service.annotations &#125;&#125;
+        &#123;&#123; $key &#125;&#125;: &#123;&#123; $val | quote &#125;&#125;
+        &#123;&#123;- end &#125;&#125;
+spec:
+  type: &#123;&#123; .Values.service.type &#125;&#125;
+  ports:
+    - port: &#123;&#123; .Values.service.port &#125;&#125;
+      targetPort: &#123;&#123; .Values.service.targetPort &#125;&#125;
+      protocol: TCP
+      name: http
+  selector:
+    &#123;&#123;- include "jenkins.selectorLabels" . | nindent 4 &#125;&#125;
+    
+</code></pre>
+<p>service对应的values.yaml配置</p>
+<pre><code>  service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+  annotations: &#123;
+    service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec: slb.s1.small 
+    service.beta.kubernetes.io/alicloud-loadbalancer-address-type: intranet  #阿里云内网负载均衡          
+  &#125;  
+  
+</code></pre>
+<h3 id="deployment-yaml"><a href="#deployment-yaml" class="headerlink" title="deployment.yaml"></a>deployment.yaml</h3><pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &#123;&#123; include "jenkins.fullname" . &#125;&#125;
+  labels:
+    &#123;&#123;- include "jenkins.labels" . | nindent 4 &#125;&#125;
+spec:
+  replicas: &#123;&#123; .Values.replicaCount &#125;&#125;
+  selector:
+    matchLabels:
+      &#123;&#123;- include "jenkins.selectorLabels" . | nindent 6 &#125;&#125;
+  template:
+    metadata:
+      labels:
+        &#123;&#123;- include "jenkins.selectorLabels" . | nindent 8 &#125;&#125;
+    spec:
+      containers:
+        - name: &#123;&#123; .Chart.Name &#125;&#125;
+          securityContext: &#123;&#125;
+          image: &quot;&#123;&#123; .Values.image.repository &#125;&#125;:&#123;&#123; .Values.image.tag | default .Chart.AppVersion &#125;&#125;&quot;
+          imagePullPolicy: &#123;&#123; .Values.image.pullPolicy &#125;&#125;
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            &#123;&#123;- toYaml .Values.resources | nindent 12 &#125;&#125;
+
+   
+</code></pre>
+<p>deployment.yaml对应的values.yaml配置</p>
+<pre><code>replicaCount: 1
+image:
+  repository: 你的jenkins镜像地址
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: &quot;ansible-utf-8&quot;
+
+resources: &#123;
+   limits:
+     cpu: 4
+     memory: 8G
+   requests:
+     cpu: 4
+     memory: 8G
+&#125;
+</code></pre>
+<p>删除Notes.txt的模板语言，因为values里面我们删除了一下值，会让该模板语言报错。</p>
+<h1 id="3-检查和部署"><a href="#3-检查和部署" class="headerlink" title="3.检查和部署"></a>3.检查和部署</h1><p>在jenkins的文件下执行helm install –dry-run –debug jenkins .  生成如下的模板：</p>
+<pre><code># Source: jenkins/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  annotations:
+        service.beta.kubernetes.io/alicloud-loadbalancer-address-type: &quot;intranet&quot;
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/instance: jenkins
+
+
+kind: Deployment
+metadata:
+  name: jenkins
+  labels:
+    helm.sh/chart: jenkins-0.1.0
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/instance: jenkins
+    app.kubernetes.io/version: &quot;1.16.0&quot;
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jenkins
+      app.kubernetes.io/instance: jenkins
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jenkins
+        app.kubernetes.io/instance: jenkins
+    spec:
+      containers:
+        - name: jenkins
+          securityContext: &#123;&#125;
+          image: &quot;harbor.dui88.com/library/jenkins:ansible-utf-8&quot;
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 4
+              memory: 8G
+            requests:
+              cpu: 4
+</code></pre>
+<p>查看没有啥问题后执行 helm install  jenkins .去部署</p>
+<pre><code>helm install  jenkins . 
+NAME: jenkins
+LAST DEPLOYED: Wed Mar 10 16:44:44 2021
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+</code></pre>
+<p>然后登陆k8s后台，可以看见default ns下有jenkins服务，<br><img src="/cloudNative/helm_jenkins.jpg"><br>svc也创建好了<br><img src="/cloudNative/helm_jenkins_svc.jpg"><br>访问也可以看见jenkins初始页面<br><img src="/cloudNative/helm_jenkins_init.jpg"></p>
+<h3 id="回滚"><a href="#回滚" class="headerlink" title="回滚"></a>回滚</h3><pre><code>helm uninstall jenkins
+release &quot;jenkins&quot; uninstalled
+
+
+
+
+ 
+ 
+</code></pre>
+
       </div>
       
       
@@ -296,7 +458,7 @@ jenkins
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%A6%96%E5%85%88%E5%88%9B%E5%BB%BA%E6%A8%A1%E6%9D%BF"><span class="nav-number">1.</span> <span class="nav-text">1.首先创建模板</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2%E9%85%8D%E7%BD%AE%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">2配置模板参数</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%A6%96%E5%85%88%E5%88%9B%E5%BB%BA%E6%A8%A1%E6%9D%BF"><span class="nav-number">1.</span> <span class="nav-text">1.首先创建模板</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AE%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">2.配置模板参数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#service-yaml"><span class="nav-number">2.0.1.</span> <span class="nav-text">service.yaml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deployment-yaml"><span class="nav-number">2.0.2.</span> <span class="nav-text">deployment.yaml</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%A3%80%E6%9F%A5%E5%92%8C%E9%83%A8%E7%BD%B2"><span class="nav-number">3.</span> <span class="nav-text">3.检查和部署</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9E%E6%BB%9A"><span class="nav-number">3.0.1.</span> <span class="nav-text">回滚</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
