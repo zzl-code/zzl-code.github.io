@@ -25,18 +25,18 @@
     var CONFIG = {"hostname":"zzl-code.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm t">
+  <meta name="description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。  今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm">
 <meta property="og:type" content="website">
 <meta property="og:title" content="helm charts 开发实践">
 <meta property="og:url" content="https://zzl-code.github.io/cloudNative/helm.html">
 <meta property="og:site_name" content="青葱的个人博客">
-<meta property="og:description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm t">
+<meta property="og:description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。  今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins.jpg">
 <meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins_svc.jpg">
 <meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins_init.jpg">
 <meta property="article:published_time" content="2021-03-08T07:33:42.000Z">
-<meta property="article:modified_time" content="2021-03-10T09:25:11.743Z">
+<meta property="article:modified_time" content="2021-03-10T09:32:56.983Z">
 <meta property="article:author" content="青葱">
 <meta property="article:tag" content="helm">
 <meta name="twitter:card" content="summary">
@@ -194,7 +194,8 @@
       
       
       <div class="post-body">
-          <p> Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去</p>
+          <p> Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。</p>
+<p> 今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去</p>
 <h1 id="1-首先创建模板"><a href="#1-首先创建模板" class="headerlink" title="1.首先创建模板"></a>1.首先创建模板</h1><pre><code>helm create jenkins
 helm tree jenkins
 jenkins
@@ -219,7 +220,7 @@ jenkins
 <li>templates：这个目录里面存放要部署的模板，里面主要是k8s对应的要部署服务相关的yaml。开发者可以将动态部分抽出为可变参数，通过values.yaml来动态传入。比如我们不同环境的jenkins规模不一样，所需要的cpu和内存就不同，就可以抽出来</li>
 <li>values.yaml 则是配置模板需要的参数，许多参数我们可以提前内置进去</li>
 </ul>
-<p>额外在说一下_helpers.tpl ，这个是对chart里面变量的一个扩展。我们可以**** 来定义全局可访问变量，比如定义jenkins的fullname：</p>
+<p>额外在说一下_helpers.tpl ，这个是对chart里面变量的一个扩展。我们可以<strong>define</strong>来定义全局可访问变量，比如定义jenkins的fullname：</p>
 <pre><code>&#123;&#123;- define "jenkins.fullname" -&#125;&#125;
 &#123;&#123;- if .Values.fullnameOverride &#125;&#125;
 &#123;&#123;- .Values.fullnameOverride | trunc 63 | trimSuffix "-" &#125;&#125;
@@ -239,10 +240,7 @@ jenkins
   
 </code></pre>
 <p>具体模板规范见<a target="_blank" rel="noopener" href="https://helm.sh/zh/docs/chart_best_practices/templates/">helm官网</a>     </p>
-<h1 id="2-配置模板参数"><a href="#2-配置模板参数" class="headerlink" title="2.配置模板参数"></a>2.配置模板参数</h1><pre><code>Chart.yaml文件中为介绍chart的一些基本信息，我们这边就用默认生成的不做更改。 
-因为我们jenkins只是做简单的测试，所以serviceAccount、hpa、ingress不做配置就直接删掉了。
-接下来就是values.yaml、service.yaml、deployment.yaml的配置，其实就是按照k8s的deployment、service的yaml的配置把需要动态的参数用模板语言抽出来，放在values.yaml里面做配置。
-</code></pre>
+<h1 id="2-配置模板参数"><a href="#2-配置模板参数" class="headerlink" title="2.配置模板参数"></a>2.配置模板参数</h1><p>  Chart.yaml文件中为介绍chart的一些基本信息，我们这边就用默认生成的不做更改。<br>因为我们jenkins只是做简单的测试，所以serviceAccount、hpa、ingress不做配置就直接删掉了。<br>接下来就是values.yaml、service.yaml、deployment.yaml的配置，<br>其实就是按照k8s的deployment、service的yaml的配置把需要动态的参数用模板语言抽出来，放在values.yaml里面做配置。</p>
 <h3 id="service-yaml"><a href="#service-yaml" class="headerlink" title="service.yaml"></a>service.yaml</h3><pre><code>apiVersion: v1
 kind: Service
 metadata:
@@ -388,7 +386,7 @@ STATUS: deployed
 REVISION: 1
 </code></pre>
 <p>然后登陆k8s后台，可以看见default ns下有jenkins服务，<br><img src="/cloudNative/helm_jenkins.jpg"><br>svc也创建好了<br><img src="/cloudNative/helm_jenkins_svc.jpg"><br>访问也可以看见jenkins初始页面<br><img src="/cloudNative/helm_jenkins_init.jpg"></p>
-<h3 id="回滚"><a href="#回滚" class="headerlink" title="回滚"></a>回滚</h3><pre><code>helm uninstall jenkins
+<h2 id="回滚"><a href="#回滚" class="headerlink" title="回滚"></a>回滚</h2><pre><code>helm uninstall jenkins
 release &quot;jenkins&quot; uninstalled
 
 
@@ -458,7 +456,7 @@ release &quot;jenkins&quot; uninstalled
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%A6%96%E5%85%88%E5%88%9B%E5%BB%BA%E6%A8%A1%E6%9D%BF"><span class="nav-number">1.</span> <span class="nav-text">1.首先创建模板</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AE%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">2.配置模板参数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#service-yaml"><span class="nav-number">2.0.1.</span> <span class="nav-text">service.yaml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deployment-yaml"><span class="nav-number">2.0.2.</span> <span class="nav-text">deployment.yaml</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%A3%80%E6%9F%A5%E5%92%8C%E9%83%A8%E7%BD%B2"><span class="nav-number">3.</span> <span class="nav-text">3.检查和部署</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9E%E6%BB%9A"><span class="nav-number">3.0.1.</span> <span class="nav-text">回滚</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%A6%96%E5%85%88%E5%88%9B%E5%BB%BA%E6%A8%A1%E6%9D%BF"><span class="nav-number">1.</span> <span class="nav-text">1.首先创建模板</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AE%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">2.配置模板参数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#service-yaml"><span class="nav-number">2.0.1.</span> <span class="nav-text">service.yaml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deployment-yaml"><span class="nav-number">2.0.2.</span> <span class="nav-text">deployment.yaml</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%A3%80%E6%9F%A5%E5%92%8C%E9%83%A8%E7%BD%B2"><span class="nav-number">3.</span> <span class="nav-text">3.检查和部署</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9E%E6%BB%9A"><span class="nav-number">3.1.</span> <span class="nav-text">回滚</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
