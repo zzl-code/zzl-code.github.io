@@ -32,16 +32,16 @@
 <meta property="og:site_name" content="青葱的个人博客">
 <meta property="og:description" content="环境准备本人使用的是JDK8、maven3.6.3 maven的setting.xml配置文件需要添加如下配置： &lt;mirrors&gt;         &lt;mirror&gt;             &lt;id&gt;repo.jenkins-ci.org&lt;&#x2F;id&gt;             &lt;url&gt;https:&#x2F;&#x2F;repo.jenkins-ci.org&#x2F;">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://zzl-code.github.io/devops/jenkins_plugin_project.jpg">
-<meta property="og:image" content="https://zzl-code.github.io/devops/jenkins_plugin_notice.jpg">
-<meta property="og:image" content="https://zzl-code.github.io/devops/jenkins_plugin_upload.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/devops/jenkinsPlugin/jenkins_plugin_project.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/devops/jenkinsPlugin/jenkins_plugin_notice.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/devops/jenkinsPlugin/jenkins_plugin_upload.jpg">
 <meta property="article:published_time" content="2021-03-05T03:30:23.000Z">
-<meta property="article:modified_time" content="2021-03-15T08:31:54.735Z">
+<meta property="article:modified_time" content="2021-03-15T08:40:29.911Z">
 <meta property="article:author" content="青葱">
 <meta property="article:tag" content="devOps">
 <meta property="article:tag" content="jenkins">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://zzl-code.github.io/devops/jenkins_plugin_project.jpg">
+<meta name="twitter:image" content="https://zzl-code.github.io/devops/jenkinsPlugin/jenkins_plugin_project.jpg">
 
 <link rel="canonical" href="https://zzl-code.github.io/devops/jenkinsPlugin">
 
@@ -296,11 +296,11 @@
 <li>hello-world-plugin(带有POM的Jenkins插件的骨架和一个示例构建步骤)</li>
 <li>脚本管道<br>我们选择了第二种。然后就是输入ArtifactId 和创建Maven项目一样GroupId呢这里就不能设置了，再然后呢就是设置 version 指定插锁创建插件的版本，这里还是使用默认的，直接 Enter 就行，最后确认 信息输入 y 回车，最后就生成了一个基本的jenkins插件项目了！</li>
 </ul>
-<h3 id="插件项目"><a href="#插件项目" class="headerlink" title="插件项目"></a>插件项目</h3><p>项目目录格式如下：<br><img src="/devops/jenkins_plugin_project.jpg"></p>
+<h3 id="插件项目"><a href="#插件项目" class="headerlink" title="插件项目"></a>插件项目</h3><p>项目目录格式如下：<br><img src="/devops/jenkinsPlugin/jenkins_plugin_project.jpg"></p>
 <p>resources下的目录结构必须要和java下的目录结构一样。例如：src.main.java下有cn.com.xxx.jenkinsBuildInformer 包中有 BuildInformer.java 文件，src/main/resources 下有cn.com.xxx.jenkinsBuildInformer.BuildInformer 目录与之对应，这是Jenkins的规则，如果存在BuildInformer.java就必须存在BuildInformer目录与之对应，目录路径必须同BuildInformer.java包名一致。</p>
 <p>   然后我们再来看BuildInformer目录，他下面有三类文件，config.jelly、jelly、*.html ，config.jelly就是整个的表单界面。在里面配置你需要的表单内容即可。</p>
 <p>  我这边写的是一个http的后置通知，可以在打包完成后把打包结果实时通知给调用打包的服务器。避免调用方使用轮训的方法拉取结果。</p>
-<p><img src="/devops/jenkins_plugin_notice.jpg"></p>
+<p><img src="/devops/jenkinsPlugin/jenkins_plugin_notice.jpg"></p>
 <p> BuildInformer代码如下：</p>
 <pre><code> /**
  * @author 青葱
@@ -493,7 +493,7 @@ public class BuildInformer extends Notifier &#123;
 &#125;  
 </code></pre>
 <h3 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h3><p>开发完成执行mvn hpi:run 会打开一个本地的带当前开发插件的jenkins服务器，地址为<a target="_blank" rel="noopener" href="http://localhost:8080/jenkins%EF%BC%8C%E5%8F%AF%E4%BB%A5%E5%9C%A8%E8%AF%A5%E5%9C%B0%E5%9D%80%E4%B8%8A%E7%9C%8B%E6%8F%92%E4%BB%B6%E6%95%88%E6%9E%9C%E3%80%82">http://localhost:8080/jenkins，可以在该地址上看插件效果。</a><br>如果需要断点调试，可以运行mvnDebug hpi:run，此命令会在8000端口建立监听，然后可以在IDE中配置对应的Run/Debug Configuration，配置完后运行Debug就会自动触发插件编译和运行流程。</p>
-<h3 id="上传插件"><a href="#上传插件" class="headerlink" title="上传插件"></a>上传插件</h3><p>jenkins如果需要运行该插件，可以登陆jenkins后台，插件管理-&gt;高级-&gt;上传插件  上传我们打包完成的.hpi包<br><img src="/devops/jenkins_plugin_upload.jpg"></p>
+<h3 id="上传插件"><a href="#上传插件" class="headerlink" title="上传插件"></a>上传插件</h3><p>jenkins如果需要运行该插件，可以登陆jenkins后台，插件管理-&gt;高级-&gt;上传插件  上传我们打包完成的.hpi包<br><img src="/devops/jenkinsPlugin/jenkins_plugin_upload.jpg"></p>
 
       </div>
       
