@@ -25,24 +25,17 @@
     var CONFIG = {"hostname":"zzl-code.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="简介Jib 是 Google 开发的可以直接构建 Java 应用的 Docker 和 OCI 镜像的类库，以 Maven 和 Gradle 插件形式提供。 通过 Jib，Java 开发者可以使用他们熟悉的 Java 工具来构建容器。Jib 是一个快速而简单的容器镜像构建工具，它负责处理将应用程序打包到容器镜像中所需的所有步骤。它不需要你编写 Dockerfile 或安装 Docker，而且可以直接">
-<meta property="og:type" content="website">
-<meta property="og:title" content="jib 更快的构建java容器镜像">
-<meta property="og:url" content="https://zzl-code.github.io/devops/jib.html">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="k8s client_go 源码解析">
+<meta property="og:url" content="https://zzl-code.github.io/cloudNative/k8s_client_go.html">
 <meta property="og:site_name" content="青葱的个人博客">
-<meta property="og:description" content="简介Jib 是 Google 开发的可以直接构建 Java 应用的 Docker 和 OCI 镜像的类库，以 Maven 和 Gradle 插件形式提供。 通过 Jib，Java 开发者可以使用他们熟悉的 Java 工具来构建容器。Jib 是一个快速而简单的容器镜像构建工具，它负责处理将应用程序打包到容器镜像中所需的所有步骤。它不需要你编写 Dockerfile 或安装 Docker，而且可以直接">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://zzl-code.github.io/devops/devops/jib/jib_docker_build.jpg">
-<meta property="article:published_time" content="2021-03-05T07:50:03.000Z">
-<meta property="article:modified_time" content="2021-03-15T08:26:47.968Z">
+<meta property="article:published_time" content="2021-03-15T08:25:06.000Z">
+<meta property="article:modified_time" content="2021-03-15T08:25:06.970Z">
 <meta property="article:author" content="青葱">
-<meta property="article:tag" content="devOps">
-<meta property="article:tag" content="jib">
-<meta property="article:tag" content="gradle">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://zzl-code.github.io/devops/devops/jib/jib_docker_build.jpg">
 
-<link rel="canonical" href="https://zzl-code.github.io/devops/jib">
+<link rel="canonical" href="https://zzl-code.github.io/cloudNative/k8s_client_go">
 
 
 <script id="page-configurations">
@@ -55,7 +48,7 @@
   };
 </script>
 
-  <title>jib 更快的构建java容器镜像 | 青葱的个人博客
+  <title>k8s client_go 源码解析 | 青葱的个人博客
 </title>
   
 
@@ -180,7 +173,7 @@
     <div class="post-block" lang="en">
       <header class="post-header">
 
-<h1 class="post-title" itemprop="name headline">jib 更快的构建java容器镜像
+<h1 class="post-title" itemprop="name headline">k8s client_go 源码解析
 </h1>
 
 <div class="post-meta">
@@ -194,42 +187,7 @@
       
       
       <div class="post-body">
-          <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p><a target="_blank" rel="noopener" href="https://github.com/GoogleContainerTools/jib">Jib</a> 是 Google 开发的可以直接构建 Java 应用的 Docker 和 OCI 镜像的类库，以 Maven 和 Gradle 插件形式提供。</p>
-<p>通过 Jib，Java 开发者可以使用他们熟悉的 Java 工具来构建容器。Jib 是一个快速而简单的容器镜像构建工具，它负责处理将应用程序打包到容器镜像中所需的所有步骤。它不需要你编写 Dockerfile 或安装 Docker，而且可以直接集成到 Maven 和 Gradle中 —— 只需要将插件添加到构建中，就可以立即将 Java 应用程序容器化。</p>
-<h1 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h1><h2 id="docker打包流程"><a href="#docker打包流程" class="headerlink" title="docker打包流程"></a>docker打包流程</h2><p><img src="/devops/devops/jib/jib_docker_build.jpg"></p>
-<h3 id="docker设计缺陷"><a href="#docker设计缺陷" class="headerlink" title="docker设计缺陷"></a>docker设计缺陷</h3><ul>
-<li> docker架构CS设计存在缺陷，打包镜像时候会存在额外开销,会把dockerfile同级目录下不需要的文件copy给docker deamon，我们生产实际存在过node应用打包，缓存很多残留文件在dockerfile同级的目录下，导致整个copy过程很慢。</li>
-<li>传统springBoot打包没有办法最大利用镜像分层缓存技术，即使开发只改动一行代码，但是镜像层缓存的还是整个应用的bootJar，这个在镜像下载和推送的时候也是一个开销。</li>
-</ul>
-<h2 id="jib打包"><a href="#jib打包" class="headerlink" title="jib打包"></a>jib打包</h2><p>  jib打包不需要docker deamon，基于gradle插件一行命令就能打包生成镜像，并推送镜像到镜像仓库。而且打包产生的文件jar、class、resouces是分离的。这样docker镜像分层更细致，这样改动文件越少传输越快。<br>打包命令：</p>
-<pre><code> gradle jib \
-     -Djib.from.image=$&#123;jibFromImage&#125; \
-     -Djib.to.image=$&#123;harborUrl&#125;/library/$&#123;appName&#125;:$&#123;tag&#125; \
-     -Djib.container.entrypoint=&#39;java&#39;,&#39;-server&#39;,&#39;-cp&#39;,&#39;/app/resources:/app/classes:/app/libs/*&#39;,$&#123;jibContainerMainClass&#125;,&#39;-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:1088&#39;
-                              
-</code></pre>
-<p> 通过实际业务应该改造后，可以实现如果只改动几个类，单次打包可以从3分钟缩短到30秒内。                             </p>
-<h1 id="踩坑"><a href="#踩坑" class="headerlink" title="踩坑"></a>踩坑</h1><ol>
-<li>gradle要升级到5以上，gradle升级后会有一些插件不支持，需要手动修改。</li>
-</ol>
-<p>比如：<br>lommbok插件引入改造，需要改为：</p>
-<pre><code>    compileOnly &#39;org.projectlombok:lombok&#39;
-    annotationProcessor &#39;org.projectlombok:lombok&#39;
-    testCompileOnly &#39;org.projectlombok:lombok&#39;
-    testAnnotationProcessor &#39;org.projectlombok:lombok&#39;   
-    
-</code></pre>
-<p>sonar插件升级：</p>
-<pre><code> org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5   
- 升级到3.0（org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0）
- 
-</code></pre>
-<p>2.有些应用改造后原来的jar包冲突会暴露出来，需要<strong>gradle dependencies</strong>去分析依赖     </p>
-<p>3.运来dockerfile 的ENTRYPOINT中传入的环境变量读取不了，比如原先我们采用的是：</p>
-<pre><code>java $JAVA_OPS -jar /root/deploy/$appname.jar --spring.profiles.active=$SPRING_ENV --spring.cloud.config.uri=$CONFIG_SERVER
-</code></pre>
-<p>命令来启动java容器，jvm启动参数$JAVA_OPS设置到环境变量中。但是接入jib，$JAVA_OPS等环境变量是读取不了的，会被当做字符串运行在命令中，官网给的解决方案是运用<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/envvars002.html">JAVA_TOOL_OPTIONS</a>环境变量来配置启动参数，但是要注意，<strong>JAVA_TOOL_OPTIONS会导致每一个启动在容器中的java进程都会读取该jvm参数，可能会导致后面的jvm进程启动冲突而启动不起来，这时候可以在容器内执行shell前先unset JAVA_TOOL_OPTIONS该环境变量，unset只会存在当前登录窗口的生命周期</strong></p>
-
+          
       </div>
       
       
@@ -290,7 +248,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9E%84%E5%BB%BA"><span class="nav-number">2.</span> <span class="nav-text">构建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#docker%E6%89%93%E5%8C%85%E6%B5%81%E7%A8%8B"><span class="nav-number">2.1.</span> <span class="nav-text">docker打包流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#docker%E8%AE%BE%E8%AE%A1%E7%BC%BA%E9%99%B7"><span class="nav-number">2.1.1.</span> <span class="nav-text">docker设计缺陷</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jib%E6%89%93%E5%8C%85"><span class="nav-number">2.2.</span> <span class="nav-text">jib打包</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B8%A9%E5%9D%91"><span class="nav-number">3.</span> <span class="nav-text">踩坑</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

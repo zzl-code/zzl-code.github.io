@@ -32,15 +32,15 @@
 <meta property="og:site_name" content="青葱的个人博客">
 <meta property="og:description" content="Helm 是 Kubernetes 的包管理器,我们可以使用helm打包应用，管理应用的依赖关系，管理应用版本并发布应用到软件仓库。对于使用者，不需要使用k8s的yaml文件去部署应用，直接helm install就可以安装应用。  今天我们就来构建一下jenkins的chart，并通过helm把jenkins部署到k8s集群中去 1.首先创建模板helm create jenkins helm">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins.jpg">
-<meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins_svc.jpg">
-<meta property="og:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins_init.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/cloudNative/helm/helm_jenkins.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/cloudNative/helm/helm_jenkins_svc.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/cloudNative/helm/helm_jenkins_init.jpg">
 <meta property="article:published_time" content="2021-03-08T07:33:42.000Z">
-<meta property="article:modified_time" content="2021-03-10T09:53:13.647Z">
+<meta property="article:modified_time" content="2021-03-15T08:26:47.963Z">
 <meta property="article:author" content="青葱">
 <meta property="article:tag" content="helm">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://zzl-code.github.io/cloudNative/helm_jenkins.jpg">
+<meta name="twitter:image" content="https://zzl-code.github.io/cloudNative/cloudNative/helm/helm_jenkins.jpg">
 
 <link rel="canonical" href="https://zzl-code.github.io/cloudNative/helm">
 
@@ -366,7 +366,7 @@ NAMESPACE: default
 STATUS: deployed
 REVISION: 1
 </code></pre>
-<p>然后登陆k8s后台，可以看见default ns下有jenkins服务，<br><img src="/cloudNative/helm_jenkins.jpg"><br>svc也创建好了<br><img src="/cloudNative/helm_jenkins_svc.jpg"><br>访问也可以看见jenkins初始页面<br><img src="/cloudNative/helm_jenkins_init.jpg"></p>
+<p>然后登陆k8s后台，可以看见default ns下有jenkins服务，<br><img src="/cloudNative/cloudNative/helm/helm_jenkins.jpg"><br>svc也创建好了<br><img src="/cloudNative/cloudNative/helm/helm_jenkins_svc.jpg"><br>访问也可以看见jenkins初始页面<br><img src="/cloudNative/cloudNative/helm/helm_jenkins_init.jpg"></p>
 <h2 id="回滚操作"><a href="#回滚操作" class="headerlink" title="回滚操作"></a>回滚操作</h2><pre><code>helm uninstall jenkins
 release &quot;jenkins&quot; uninstalled
 </code></pre>
