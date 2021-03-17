@@ -2,7 +2,35 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://zzl-code.github.io/devops/jib.html</loc>
+    
+    <lastmod>2021-03-17</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zzl-code.github.io/devops/</loc>
+    
+    <lastmod>2021-03-17</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zzl-code.github.io/cloudNative/helm.html</loc>
+    
+    <lastmod>2021-03-17</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://zzl-code.github.io/cloudNative/k8s_client_go.html</loc>
+    
+    <lastmod>2021-03-17</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zzl-code.github.io/devops/jenkinsPlugin.html</loc>
     
     <lastmod>2021-03-17</lastmod>
     
@@ -11,35 +39,7 @@
   <url>
     <loc>https://zzl-code.github.io/cloudNative/</loc>
     
-    <lastmod>2021-03-16</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zzl-code.github.io/cloudNative/helm.html</loc>
-    
-    <lastmod>2021-03-15</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zzl-code.github.io/devops/jib.html</loc>
-    
-    <lastmod>2021-03-15</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zzl-code.github.io/devops/jenkinsPlugin.html</loc>
-    
-    <lastmod>2021-03-15</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zzl-code.github.io/devops/</loc>
-    
-    <lastmod>2021-03-05</lastmod>
+    <lastmod>2021-03-17</lastmod>
     
   </url>
   
@@ -81,7 +81,7 @@
   </url>
   
   <url>
-    <loc>https://zzl-code.github.io/tags/devops/</loc>
+    <loc>https://zzl-code.github.io/tags/DevOps/</loc>
     <lastmod>2021-03-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
