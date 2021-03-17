@@ -25,15 +25,22 @@
     var CONFIG = {"hostname":"zzl-code.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="k8s client_go 源码解析">
+  <meta name="description" content="本文为《Kubernetes 源码剖析》读书笔记，书籍简介： http:&#x2F;&#x2F;www.broadview.com.cn&#x2F;book&#x2F;6104 1.client_go源码结构client_go在Kubernetes的vendor&#x2F;k8s.io&#x2F;client-go目录下 tree  -L 1 . ├── discovery  提供DiscoveryClient发现客户端 ├── dynamic  提供Dy">
+<meta property="og:type" content="website">
+<meta property="og:title" content="k8s client_go源码解析(1)  源码结构及客户端">
 <meta property="og:url" content="https://zzl-code.github.io/cloudNative/k8s_client_go.html">
 <meta property="og:site_name" content="青葱的个人博客">
+<meta property="og:description" content="本文为《Kubernetes 源码剖析》读书笔记，书籍简介： http:&#x2F;&#x2F;www.broadview.com.cn&#x2F;book&#x2F;6104 1.client_go源码结构client_go在Kubernetes的vendor&#x2F;k8s.io&#x2F;client-go目录下 tree  -L 1 . ├── discovery  提供DiscoveryClient发现客户端 ├── dynamic  提供Dy">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/unstructuredObj.jpg">
 <meta property="article:published_time" content="2021-03-15T08:25:06.000Z">
-<meta property="article:modified_time" content="2021-03-15T08:25:06.970Z">
+<meta property="article:modified_time" content="2021-03-17T03:59:51.759Z">
 <meta property="article:author" content="青葱">
+<meta property="article:tag" content="k8s">
+<meta property="article:tag" content="cloudNative">
+<meta property="article:tag" content="client_go">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zzl-code.github.io/cloudNative/unstructuredObj.jpg">
 
 <link rel="canonical" href="https://zzl-code.github.io/cloudNative/k8s_client_go">
 
@@ -48,7 +55,7 @@
   };
 </script>
 
-  <title>k8s client_go 源码解析 | 青葱的个人博客
+  <title>k8s client_go源码解析(1)  源码结构及客户端 | 青葱的个人博客
 </title>
   
 
@@ -173,7 +180,7 @@
     <div class="post-block" lang="en">
       <header class="post-header">
 
-<h1 class="post-title" itemprop="name headline">k8s client_go 源码解析
+<h1 class="post-title" itemprop="name headline">k8s client_go源码解析(1)  源码结构及客户端
 </h1>
 
 <div class="post-meta">
@@ -187,7 +194,241 @@
       
       
       <div class="post-body">
-          
+          <p>本文为《Kubernetes 源码剖析》读书笔记，书籍简介： <a target="_blank" rel="noopener" href="http://www.broadview.com.cn/book/6104">http://www.broadview.com.cn/book/6104</a></p>
+<h1 id="1-client-go源码结构"><a href="#1-client-go源码结构" class="headerlink" title="1.client_go源码结构"></a>1.client_go源码结构</h1><p>client_go在Kubernetes的vendor/k8s.io/client-go目录下</p>
+<pre><code>tree  -L 1
+.
+├── discovery  提供DiscoveryClient发现客户端
+├── dynamic  提供DynamicClient动态客户端
+├── informers 每种kubernetes资源的informer实现
+├── kubernetes  提供ClientSet客户端
+├── listers  为每个kubernetes资源提供Lister功能，该功能对Get和List提供只读的缓存数据
+├── plugin 提供OpenStack、Gcp和Azure等云服务商授权插件
+├── rest 提供RestClient客户端，对api server执行RESTful操作
+├── scale 提供ScaleClient客户端，用于扩容或缩容Deployment、ReplicaSet、Replication Controller等资源对象
+├── tools 提供常用工具，例如SharedInformer、Reflector、DealtFIFO、Indexers。提供Client查询和缓存机制，减少向api server发起的请求数等
+├── transport 提供安全的TCP连接，支持Http Stream，某些操作需要在需要在客户端和容器之间传输二进制流，例如exec、attach等操作。该功能由内部的apdy包提供
+└── util 提供常用方法，例如WorkQueue工作队列、Certificate证书管理等
+</code></pre>
+<h1 id="2-Client客户端对象"><a href="#2-Client客户端对象" class="headerlink" title="2.Client客户端对象"></a>2.Client客户端对象</h1><p>client_go 包含4种客户端对象与API Server交互，分别是：RESTClient、ClientSet、DynamicClient、DiscoveryClient</p>
+<table>
+<thead>
+<tr>
+<th>客户端</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RESTClient</td>
+<td><strong>是最基础的客户端，其他三种客户端都是基于它实现的</strong>，它对Http Request进行了封装，实现了RESTful风格API</td>
+</tr>
+<tr>
+<td>ClientSet</td>
+<td>封装了对Resource和Version的管理方法，每一个Resource可以理解为一个客户端，而ClientSet是多个客户端的集合，每一个Resource和Version都以函数的方式暴露给开发者。同时<strong>ClientSet只能处理Kubernetes的内置资源</strong>，通过client-gen代码生成器自动生成</td>
+</tr>
+<tr>
+<td>DynamicClient</td>
+<td>可以处理Kubernetes中所有资源对象，包括内置资源和CRD自定义资源</td>
+</tr>
+<tr>
+<td>DiscoveryClient</td>
+<td>发现客户端，用于发现api server所支持的资源组、资源版本、资源信息（Group、Versions、Resources）</td>
+</tr>
+</tbody></table>
+<p>以上4种客户端都可以通过kubeconfig连接到指定的api  server。</p>
+<h2 id="RESTClient客户端"><a href="#RESTClient客户端" class="headerlink" title="RESTClient客户端"></a>RESTClient客户端</h2><p>example代码示例</p>
+<pre><code>//加载kubeconfig配置信息
+config,error:=clientcmd.BuildConfigFromFlags(&quot;&quot;,&quot;/Users/.kube/config&quot;)
+if error!=nil&#123;
+    panic(error)
+&#125;
+//设置APIPath请求的Http路径
+config.APIPath=&quot;api&quot;
+//设置请求的资源组和资源版本
+config.GroupVersion=&amp;corev1.SchemeGroupVersion
+//设置解码器
+config.NegotiatedSerializer=scheme.Codecs
+
+//根据config信息实例化restClient
+restClient,error:=rest.RESTClientFor(config)
+if error != nil &#123;
+    panic(error)
+&#125;
+result:=&amp;corev1.PodList&#123;&#125;
+
+error = restClient.Get().
+    Namespace(&quot;dev&quot;).
+    Resource(&quot;pods&quot;).
+    VersionedParams(&amp;metav1.ListOptions&#123;Limit: 500&#125;,scheme.ParameterCodec).
+    //执行请求
+    Do(context.TODO()).
+    //解析对象到result中
+    Into(result)
+for _,d:=range result.Items&#123;
+    fmt.Printf(&quot;NAMESPACE:%v \t NAME:%v \t STATUS:%+v \n&quot;,d.Namespace,d.Name,d.Status.Phase)
+&#125;
+</code></pre>
+<p>运行以上代码，列出dev命名空间下所有Pod资源信息。</p>
+<p>Do方法是发起http请求的代码，代码路径在：rest/request.go</p>
+<p>Do函数代码：</p>
+<pre><code>func (r *Request) Do(ctx context.Context) Result &#123;
+    var result Result
+    err := r.request(ctx, func(req *http.Request, resp *http.Response) &#123;
+        result = r.transformResponse(resp, req)
+    &#125;)
+    if err != nil &#123;
+        return Result&#123;err: err&#125;
+    &#125;
+    return result
+&#125;
+</code></pre>
+<p>Do函数调用的是Request的request函数</p>
+<p>request函数代码：</p>
+<pre><code>func (r *Request) request(ctx context.Context, fn func(*http.Request, *http.Response)) error &#123;
+    ...
+    for &#123;
+        url := r.URL().String()
+        req, err := http.NewRequest(r.verb, url, r.body)
+        if err != nil &#123;
+            return err
+        &#125;
+        req = req.WithContext(ctx)
+        req.Header = r.headers
+        ...
+        //发起调用
+        resp, err := client.Do(req)
+        
+        ...
+    
+        if err != nil &#123;
+            ...
+            //构建response
+                resp = &amp;http.Response&#123;
+                    StatusCode: http.StatusInternalServerError,
+                    Header:     http.Header&#123;&quot;Retry-After&quot;: []string&#123;&quot;1&quot;&#125;&#125;,
+                    Body:       ioutil.NopCloser(bytes.NewReader([]byte&#123;&#125;)),
+                &#125;
+            &#125; else &#123;
+                return err
+            &#125;
+        &#125;
+
+        done := func() bool &#123;
+                 
+            defer func() &#123;
+            ...
+                resp.Body.Close()
+            &#125;()
+               ....
+              fn(req, resp)
+            return true
+        &#125;()
+        if done &#123;
+            return nil
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>其中 r.URL().String() 对请求的信息进行解析为 REST请求 URL； 比如上述的Demo解析的地址为 <a target="_blank" rel="noopener" href="http://x.x.x.x/api/v1/namespaces/dev/pods?limit=500,%E6%9C%80%E5%90%8E%E9%80%9A%E8%BF%87net/http%E6%83%B3%E8%AF%A5url%EF%BC%88%E5%8D%B3api">http://x.x.x.x/api/v1/namespaces/dev/pods?limit=500,最后通过net/http想该url（即api</a> server发送请求），将请求结果放在http.Response的Body对象中，在调用fn函数（即transformResponse）将结果转为资源对象，在通过resp.Body.close命令进行关闭。</p>
+<h2 id="ClientSet客户端"><a href="#ClientSet客户端" class="headerlink" title="ClientSet客户端"></a>ClientSet客户端</h2><p>example代码示例</p>
+<pre><code>//加载kubeconfig配置信息
+    config,error:=clientcmd.BuildConfigFromFlags(&quot;&quot;,&quot;/Users/.kube/config&quot;)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    //实例化client
+    clientSet,error :=kubernetes.NewForConfig(config)
+    podClient :=clientSet.CoreV1().Pods(&quot;kube-system&quot;)
+    //查询pod
+    list,error :=podClient.List(context.TODO(),metav1.ListOptions&#123;Limit: 500&#125;)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    for _,d:=range list.Items&#123;
+        fmt.Printf(&quot;NAMESPACE:%v \t NAME:%v \t STATUS:%+v \n&quot;,d.Namespace,d.Name,d.Status.Phase)
+    &#125;
+</code></pre>
+<p>podClient.List底层调用的是RESTClient获取pod列表</p>
+<pre><code>    func (c *pods) List(ctx context.Context, opts metav1.ListOptions) (result *v1.PodList, err error) &#123;
+    var timeout time.Duration
+    if opts.TimeoutSeconds != nil &#123;
+        timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
+    &#125;
+    result = &amp;v1.PodList&#123;&#125;
+    err = c.client.Get().
+        Namespace(c.ns).
+        Resource(&quot;pods&quot;).
+        VersionedParams(&amp;opts, scheme.ParameterCodec).
+        Timeout(timeout).
+        Do(ctx).
+        Into(result)
+    return
+&#125;    
+</code></pre>
+<h2 id="DynamicClient客户端"><a href="#DynamicClient客户端" class="headerlink" title="DynamicClient客户端"></a>DynamicClient客户端</h2><p>ClientSet只能处理k8s内部资源类型是因为它k8s内部资源是已知的数据结构，ClientSet预先实现了对Resource和Version的操作。</p>
+<p>但是CRD的自定义资源是未知的数据结构，DynamicClient能访问CRD自定义资源，就依赖于内部实现了Unstructured，来处理非结构化的数据结构。<br>处理过程：客户端首先会将resource转换成Unstructured结构。</p>
+<pre><code>type UnstructuredList struct &#123;
+    Object map[string]interface&#123;&#125;
+
+    // Items is a list of unstructured objects.
+    Items []Unstructured `json:&quot;items&quot;`
+&#125;    
+</code></pre>
+<p>unstructured其实就是一个map[string]interface{}数据结构。<br><img src="/cloudNative/unstructuredObj.jpg"><br>再通过</p>
+<blockquote>
+<p>runtime.DefaultUnstructuredConverter.FromUnstructured(unstructObj.UnstructuredContent(),podList)</p>
+</blockquote>
+<p>方法，反射将map[string]interface{}类型转为目标类型</p>
+<p>Demo：</p>
+<pre><code>//加载kubeconfig配置信息
+    config,error:=clientcmd.BuildConfigFromFlags(&quot;&quot;,&quot;/Users/.kube/config&quot;)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    //实例化client
+    dyClient,error:=dynamic.NewForConfig(config)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    gvr:=schema.GroupVersionResource&#123;Version: &quot;v1&quot;,Resource: &quot;pods&quot;&#125;
+    unstructObj,error:=dyClient.Resource(gvr).Namespace(&quot;dev&quot;).List(context.TODO(),metav1.ListOptions&#123;Limit: 500&#125;)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    podList:=&amp;corev1.PodList&#123;&#125;
+    error=runtime.DefaultUnstructuredConverter.FromUnstructured(unstructObj.UnstructuredContent(),podList)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    for _,d:=range podList.Items&#123;
+        fmt.Printf(&quot;NAMESPACE:%v \t NAME:%v \t STATUS:%+v \n&quot;,d.Namespace,d.Name,d.Status.Phase)
+    &#125;
+</code></pre>
+<h2 id="DiscoveryClient客户端"><a href="#DiscoveryClient客户端" class="headerlink" title="DiscoveryClient客户端"></a>DiscoveryClient客户端</h2><p>DiscoveryClient功能主要用于发现api server所支持的资源组、资源版本、资源信息，同时还可以将这些信息缓存在本地，减少对api  server的压力，<br>默认缓存信息存储在<del>/kube/cache和</del>/.kube/http-cache下<br>Demo：</p>
+<pre><code>//加载kubeconfig配置信息
+    config,error:=clientcmd.BuildConfigFromFlags(&quot;&quot;,&quot;/Users/.kube/config&quot;)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    discoveryClient,error:=discovery.NewDiscoveryClientForConfig(config)
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    _, apiResourceList,error:=discoveryClient.ServerGroupsAndResources()
+    if error!=nil&#123;
+        panic(error)
+    &#125;
+    for _,list:=range  apiResourceList&#123;
+        gv,error:=schema.ParseGroupVersion(list.GroupVersion)
+        if error!=nil&#123;
+            panic(error)
+        &#125;
+        for _,resource :=range list.APIResources&#123;
+            fmt.Printf(&quot;name:%v ,group:%v,version:%v\n&quot;,resource.Name,gv.Group,gv.Version)
+        &#125;
+    &#125;
+</code></pre>
+
       </div>
       
       
@@ -248,6 +489,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-client-go%E6%BA%90%E7%A0%81%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">1.client_go源码结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-Client%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">2.Client客户端对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RESTClient%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-number">2.1.</span> <span class="nav-text">RESTClient客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ClientSet%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-number">2.2.</span> <span class="nav-text">ClientSet客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DynamicClient%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-number">2.3.</span> <span class="nav-text">DynamicClient客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DiscoveryClient%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-number">2.4.</span> <span class="nav-text">DiscoveryClient客户端</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
