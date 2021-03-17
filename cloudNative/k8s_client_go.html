@@ -32,15 +32,15 @@
 <meta property="og:site_name" content="青葱的个人博客">
 <meta property="og:description" content="本文为《Kubernetes 源码剖析》读书笔记，书籍简介： http:&#x2F;&#x2F;www.broadview.com.cn&#x2F;book&#x2F;6104 1.client_go源码结构client_go在Kubernetes的vendor&#x2F;k8s.io&#x2F;client-go目录下 tree  -L 1 . ├── discovery  提供DiscoveryClient发现客户端 ├── dynamic  提供Dy">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://zzl-code.github.io/cloudNative/unstructuredObj.jpg">
+<meta property="og:image" content="https://zzl-code.github.io/cloudNative/k8s_client_go/unstructuredObj.jpg">
 <meta property="article:published_time" content="2021-03-15T08:25:06.000Z">
-<meta property="article:modified_time" content="2021-03-17T09:00:48.443Z">
+<meta property="article:modified_time" content="2021-03-17T09:05:21.425Z">
 <meta property="article:author" content="青葱">
 <meta property="article:tag" content="k8s">
 <meta property="article:tag" content="cloudNative">
 <meta property="article:tag" content="client_go">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://zzl-code.github.io/cloudNative/unstructuredObj.jpg">
+<meta name="twitter:image" content="https://zzl-code.github.io/cloudNative/k8s_client_go/unstructuredObj.jpg">
 
 <link rel="canonical" href="https://zzl-code.github.io/cloudNative/k8s_client_go">
 
@@ -374,7 +374,7 @@ for _,d:=range result.Items&#123;
     Items []Unstructured `json:&quot;items&quot;`
 &#125;    
 </code></pre>
-<p>unstructured其实就是一个map[string]interface{}数据结构。<br><img src="/cloudNative/unstructuredObj.jpg"><br>再通过</p>
+<p>unstructured其实就是一个map[string]interface{}数据结构。<br><img src="/cloudNative/k8s_client_go/unstructuredObj.jpg"><br>再通过</p>
 <blockquote>
 <p>runtime.DefaultUnstructuredConverter.FromUnstructured(unstructObj.UnstructuredContent(),podList)</p>
 </blockquote>
